@@ -27,8 +27,8 @@ Aidan Ream Raymarcher Project
 using namespace std;
 using namespace glm;
 
-int SCREEN_WIDTH = 640;
-int SCREEN_HEIGHT = 480;
+int SCREEN_WIDTH = 1980;
+int SCREEN_HEIGHT = 1024;
 
 class Application : public EventCallbacks
 {

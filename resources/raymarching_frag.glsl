@@ -15,8 +15,9 @@ float distance_from_sphere(in vec3 p, in vec3 c, float r){
 
 float map_the_world(in vec3 p){
 	float displacement = sin(5.0 * p.x) * sin(5.0 * p.y) * sin(5.0 * p.z) * 0.25;
-	float sphere_0 = distance_from_sphere(p, vec3(0.0), 1.0);
+	float sphere_0 = distance_from_sphere(p, vec3(0.0), 2.0);
 	//Opens up the possibility to have sdfs for multiple shapes
+	displacement *= cos(iTime);
 
 	return sphere_0 + displacement;
 }
@@ -39,8 +40,8 @@ vec3 calculate_normal(in vec3 p){
 //ro ray origin, rd ray direction
 vec3 raymarch(in vec3 ro, in vec3 rd){
 	float total_distance_traveled = 0.0;
-	const int NUMBER_OF_STEPS = 32;
-	const float MINIMUM_HIT_DISTANCE = 0.0001;
+	const int NUMBER_OF_STEPS = 128;
+	const float MINIMUM_HIT_DISTANCE = 0.001;
 	const float MAXIMUM_TRACE_DISTANCE = 1000.0;
 
 	for (int i = 0; i < NUMBER_OF_STEPS; i++){
@@ -79,6 +80,7 @@ vec3 raymarch(in vec3 ro, in vec3 rd){
 	
 	//Return background if we missed
 	return vec3(1.0 * ( 0.5 + sin(iTime)));
+	//return vec3(0.0);
 }
 
 void main()
