@@ -27,6 +27,9 @@ Aidan Ream Raymarcher Project
 using namespace std;
 using namespace glm;
 
+int SCREEN_WIDTH = 640;
+int SCREEN_HEIGHT = 480;
+
 class Application : public EventCallbacks
 {
 
@@ -42,7 +45,11 @@ public:
 
 	std::shared_ptr<Program> ditherProg;
 
+	//Used to make a draw call on the triangle primitive defined in the vertex shader for Raymarching
 	GLuint emptyVAO;
+
+	//Screen Resolution
+	vec2 iResolution = vec2(1.0, 1.0);
 
 	//the image to use as a texture
 	shared_ptr<Texture> texture0;
@@ -123,6 +130,7 @@ public:
 	void resizeCallback(GLFWwindow* window, int width, int height)
 	{
 		glViewport(0, 0, width, height);
+		iResolution = vec2(width , height);
 	}
 
 	void scrollCallback(GLFWwindow* window, double deltaX, double deltaY) {
@@ -144,14 +152,15 @@ public:
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		// Enable z-buffer test.
 		glEnable(GL_DEPTH_TEST);
-
+		
 		//// Initialize the GLSL program that we will use for local shading
 		fragProg = make_shared<Program>();
 		fragProg->setVerbose(true);
-		fragProg->setShaderNames(resourceDirectory + "/simple_vert.glsl", resourceDirectory + "/solid_frag.glsl");
+		fragProg->setShaderNames(resourceDirectory + "/fullscreen_primative.glsl", resourceDirectory + "/raymarching_frag.glsl");
 		fragProg->init();
 		fragProg->addUniform("solidColor");
 		fragProg->addUniform("iTime");
+		fragProg->addUniform("iResolution");
 	}
 
 	void render(float frametime) {
@@ -170,6 +179,7 @@ public:
 		fragProg->bind();
 		glUniform3f(fragProg->getUniform("solidColor"), 0.0, 0.7, 0.0); 
 		glUniform1f(fragProg->getUniform("iTime"), currentTime);
+		glUniform2f(fragProg->getUniform("iResolution"), iResolution.x, iResolution.y);
 		glGenVertexArrays(1, &emptyVAO); glBindVertexArray(emptyVAO); 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		fragProg->unbind();
@@ -194,7 +204,8 @@ int main(int argc, char* argv[])
 	// and GL context, etc.
 
 	WindowManager* windowManager = new WindowManager();
-	windowManager->init(640, 480);
+	windowManager->init(SCREEN_WIDTH, SCREEN_HEIGHT);
+	application->iResolution = vec2(SCREEN_WIDTH, SCREEN_HEIGHT);
 	windowManager->setEventCallbacks(application);
 	application->windowManager = windowManager;
 

@@ -47,7 +47,7 @@ bool WindowManager::init(int const width, int const height)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
 	// Create a windowed mode window and its OpenGL context.
-	windowHandle = glfwCreateWindow(width, height, "Project 4 - Aidan Ream", nullptr, nullptr);
+	windowHandle = glfwCreateWindow(width, height, "Raymarcher", nullptr, nullptr);
 	if (! windowHandle)
 	{
 		glfwTerminate();
