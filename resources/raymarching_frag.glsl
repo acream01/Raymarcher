@@ -14,10 +14,11 @@ float distance_from_sphere(in vec3 p, in vec3 c, float r){
 }
 
 float map_the_world(in vec3 p){
+	float displacement = sin(5.0 * p.x) * sin(5.0 * p.y) * sin(5.0 * p.z) * 0.25;
 	float sphere_0 = distance_from_sphere(p, vec3(0.0), 1.0);
 	//Opens up the possibility to have sdfs for multiple shapes
 
-	return sphere_0;
+	return sphere_0 + displacement;
 }
 
 vec3 calculate_normal(in vec3 p){
@@ -54,7 +55,15 @@ vec3 raymarch(in vec3 ro, in vec3 rd){
 			//Hit! Return red 
 			vec3 normal = calculate_normal(current_position);
 
-			return normal * 0.5 + 0.5;
+			//temporary hardcoded light for testing
+			vec3 light_position = vec3(2.0, -5.0, 3.0);
+
+			vec3 direction_to_light = normalize(current_position - light_position);
+
+			float diffuse_intensity = max(0.0, dot(normal, direction_to_light));
+
+
+			return vec3(1.0, 0.0, 0.0) * diffuse_intensity;
 		}
 
 		if (total_distance_traveled > MAXIMUM_TRACE_DISTANCE){
