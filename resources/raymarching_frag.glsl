@@ -6,20 +6,74 @@ uniform vec3 solidColor;
 uniform vec2 iResolution;
 uniform float iTime;
 
-float distance_from_sphere(in vec3 p, in vec3 c, float r){
+
+float opUnion( float a, float b )
+{
+    return min(a,b);
+}
+float opSubtraction( float a, float b )
+{
+    return max(-a,b);
+}
+float opIntersection( float a, float b )
+{
+    return max(a,b);
+}
+float opXor( float a, float b )
+{
+    return max(min(a,b),-max(a,b));
+}
+float opSmoothUnion( float a, float b, float k )
+{
+    k *= 4.0;
+    float h = max(k-abs(a-b),0.0);
+    return min(a, b) - h*h*0.25/k;
+}
+float opSmoothSubtraction( float a, float b, float k )
+{
+    return -opSmoothUnion(a,-b,k);
+
+    // k *= 4.0;
+    // float h = max(k-abs(-a-b),0.0);
+    // return max(-a, b) + h*h*0.25/k;
+}
+float opSmoothIntersection( float a, float b, float k )
+{
+    return -opSmoothUnion(-a,-b,k);
+
+    // k *= 4.0;
+    // float h = max(k-abs(a-b),0.0);
+    // return max(a, b) + h*h*0.25/k;
+}
+
+float sdSphere(in vec3 p, in vec3 c, float r){
 	// p is point in 3D
 	// c is center of sphere
 	// r is radius
 	return length(p - c) - r;
 }
 
+float sdBox( vec3 p, vec3 b )
+{
+  vec3 q = abs(p) - b;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
 float map_the_world(in vec3 p){
+	
+	vec3 q = p - vec3(-1.0); //Position
 	float displacement = sin(5.0 * p.x) * sin(5.0 * p.y) * sin(5.0 * p.z) * 0.25;
-	float sphere_0 = distance_from_sphere(p, vec3(0.0), 2.0);
+	//float sphere_0 = sdSphere(p, vec3(0.0, 0.0, sin(iTime) * 0.25), 2.0);
+	//float sphere_1 = sdSphere(p, vec3( sin(iTime) * 3.0, cos(iTime) * 3.0, 0.0), 2.0);
 	//Opens up the possibility to have sdfs for multiple shapes
+	float box_1 = sdBox(q, vec3(1.0, 0.5, 1.0));
+
+	q = p - vec3(1.0);
+	float box_2 = sdBox(q, vec3(1.0, 0.5, 1.0));
 	displacement *= cos(iTime);
 
-	return sphere_0 + displacement;
+	//return opSmoothUnion(sphere_0, sphere_1, 0.3) + displacement;
+	return opUnion(box_1, box_2) + displacement;
 }
 
 vec3 calculate_normal(in vec3 p){
@@ -38,10 +92,10 @@ vec3 calculate_normal(in vec3 p){
 }
 
 //ro ray origin, rd ray direction
-vec3 raymarch(in vec3 ro, in vec3 rd){
+vec3 raymarch(in vec3 ro, in vec3 rd, in vec3 mat){
 	float total_distance_traveled = 0.0;
 	const int NUMBER_OF_STEPS = 128;
-	const float MINIMUM_HIT_DISTANCE = 0.001;
+	const float MINIMUM_HIT_DISTANCE = 0.005;
 	const float MAXIMUM_TRACE_DISTANCE = 1000.0;
 
 	for (int i = 0; i < NUMBER_OF_STEPS; i++){
@@ -64,7 +118,7 @@ vec3 raymarch(in vec3 ro, in vec3 rd){
 			float diffuse_intensity = max(0.0, dot(normal, direction_to_light));
 
 
-			return vec3(1.0, 0.0, 0.0) * diffuse_intensity;
+			return mat * diffuse_intensity;
 		}
 
 		if (total_distance_traveled > MAXIMUM_TRACE_DISTANCE){
@@ -79,7 +133,8 @@ vec3 raymarch(in vec3 ro, in vec3 rd){
 	}
 	
 	//Return background if we missed
-	return vec3(1.0 * ( 0.5 + sin(iTime)));
+	//return vec3(1.0 * ( 0.5 + sin(iTime)));
+	return vec3(0.5 + 0.5 * cos(iTime + texcoords.xyx + vec3(0, 2, 4)));
 	//return vec3(0.0);
 }
 
@@ -94,8 +149,10 @@ void main()
 	vec3 ro = camera_position;
 	vec3 rd = vec3(uv, 1.0);
 
+	vec3 mat = vec3(1.0, sin(iTime) * 0.5 + 0.5, cos(iTime) * 0.5 + 0.5);
+	//vec3 mat = vec3(texcoords.x, 0.0, 0.0);
 	//vec3 col = 0.5 + 0.5 * cos(iTime + uv.xyx + vec3(0, 2, 4));
-	vec3 col = raymarch(ro, rd);
+	vec3 col = raymarch(ro, rd, mat);
 
 	color = vec4(col , 1.0);
 	
