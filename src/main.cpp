@@ -42,6 +42,7 @@ public:
 
 	std::shared_ptr<Program> ditherProg;
 
+	GLuint emptyVAO;
 
 	//the image to use as a texture
 	shared_ptr<Texture> texture0;
@@ -149,74 +150,8 @@ public:
 		fragProg->setVerbose(true);
 		fragProg->setShaderNames(resourceDirectory + "/simple_vert.glsl", resourceDirectory + "/solid_frag.glsl");
 		fragProg->init();
-		fragProg->addUniform("P");
-		fragProg->addUniform("V");
-		fragProg->addUniform("M");
-		fragProg->addUniform("MatAmb");
-		fragProg->addUniform("MatDif");
-		fragProg->addUniform("MatSpec");
-		fragProg->addUniform("MatShine");
-		fragProg->addUniform("lightPos");
-		fragProg->addUniform("LightPos");
-		fragProg->addUniform("LightInt");
-		fragProg->addAttribute("vertPos");
-		fragProg->addAttribute("vertNor");
+		fragProg->addUniform("solidColor");
 	}
-
-
-	//helper function to pass material data to the GPU
-	void SetMaterial(shared_ptr<Program> curS, int i) {
-
-		switch (i) {
-		case 0: // Dark Green
-			glUniform3f(curS->getUniform("MatAmb"), 0.02, 0.05, 0.02);  // Dark green ambient
-			glUniform3f(curS->getUniform("MatDif"), 0.1, 0.3, 0.1);     // Deep forest green
-			glUniform3f(curS->getUniform("MatSpec"), 0.2, 0.25, 0.2);   // Mild reflectivity, slightly green-tinted
-			glUniform1f(curS->getUniform("MatShine"), 50.0);           // Medium shininess for a subtle sheen
-			break;
-		case 1: // Blue-Green 
-			glUniform3f(curS->getUniform("MatAmb"), 0.03, 0.06, 0.05);  // Slightly bluish-green ambient
-			glUniform3f(curS->getUniform("MatDif"), 0.15, 0.4, 0.3);    // Mostly green with a touch of blue
-			glUniform3f(curS->getUniform("MatSpec"), 0.2, 0.3, 0.28);   // Mild reflectivity, slightly cool-toned
-			glUniform1f(curS->getUniform("MatShine"), 10.0);           // Medium shininess for soft but visible highlights
-			break;
-		case 3: //Green Shiney Cactus
-			glUniform3f(curS->getUniform("MatAmb"), 0.07, 0.15, 0.07);  // Slightly desaturated ambient green
-			glUniform3f(curS->getUniform("MatDif"), 0.25, 0.6, 0.25);   // Less saturated but still clearly green
-			glUniform3f(curS->getUniform("MatSpec"), 0.75, 0.85, 0.75); // High but balanced metallic specular
-			glUniform1f(curS->getUniform("MatShine"), 120.0);          // Slightly softer highlights than before
-		case 4: //Bunny Fur
-			glUniform3f(curS->getUniform("MatAmb"), 0.2, 0.15, 0.1);   // Warm brownish-gray ambient tone
-			glUniform3f(curS->getUniform("MatDif"), 0.7, 0.6, 0.5);   // Soft, warm, and natural fur color
-			glUniform3f(curS->getUniform("MatSpec"), 0.2, 0.18, 0.15); // Low reflectivity for a soft sheen
-			glUniform1f(curS->getUniform("MatShine"), 20.0);          // Low shininess for subtle light diffusion
-		}
-	}
-
-	/* helper function to set model trasnforms */
-	void SetModel(vec3 trans, float rotY, float rotX, float sc, shared_ptr<Program> curS) {
-		mat4 Trans = glm::translate(glm::mat4(1.0f), trans);
-		mat4 RotX = glm::rotate(glm::mat4(1.0f), rotX, vec3(1, 0, 0));
-		mat4 RotY = glm::rotate(glm::mat4(1.0f), rotY, vec3(0, 1, 0));
-		mat4 ScaleS = glm::scale(glm::mat4(1.0f), vec3(sc));
-		mat4 ctm = Trans * RotX * RotY * ScaleS;
-		glUniformMatrix4fv(curS->getUniform("M"), 1, GL_FALSE, value_ptr(ctm));
-	}
-
-	void setModel(std::shared_ptr<Program> prog, std::shared_ptr<MatrixStack>M) {
-		glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-	}
-
-
-	void setUpModel(shared_ptr<Program> prog, vec3 trans, float rotY, float sc) {
-		mat4 Trans = glm::translate(glm::mat4(1.0f), trans);
-		mat4 Scale = glm::scale(glm::mat4(1.0f), vec3(sc));
-		mat4 RotY = glm::rotate(glm::mat4(1.0f), rotY, vec3(0, 1, 0));
-		mat4 ctm = Trans * RotY * Scale;
-		glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(ctm));
-	}
-
-
 
 	void render(float frametime) {
 		// Get current frame buffer size.
@@ -231,6 +166,9 @@ public:
 
 		
 		fragProg->bind();
+		glUniform3f(fragProg->getUniform("solidColor"), 0.0, 0.7, 0.0); 
+		glGenVertexArrays(1, &emptyVAO); glBindVertexArray(emptyVAO); 
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		fragProg->unbind();
 		
 

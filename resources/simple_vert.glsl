@@ -1,22 +1,7 @@
 #version  330 core
-layout(location = 0) in vec4 vertPos;
-layout(location = 1) in vec3 vertNor;
-uniform mat4 P;
-uniform mat4 V;
-uniform mat4 M;
-
-uniform vec3 lightPos;
-
-//keep these and set them correctly
-out vec3 fragNor;
-out vec3 lightDir;
-out vec3 EPos;
-
-void main()
-{
-	gl_Position = P * V * M * vertPos;
-	//update these as needed
-	fragNor = (M * vec4(vertNor, 0.0)).xyz; 
-	lightDir = lightPos - (M*vertPos).xyz;
-	EPos = (M*vertPos).xyz;
+out vec2 texcoords; // texcoords are in the normalized [0,1] range for the viewport-filling quad part of the triangle
+void main() {
+        vec2 vertices[3]=vec2[3](vec2(-1,-1), vec2(3,-1), vec2(-1, 3));
+        gl_Position = vec4(vertices[gl_VertexID],0,1);
+        texcoords = 0.5 * gl_Position.xy + vec2(0.5);
 }
