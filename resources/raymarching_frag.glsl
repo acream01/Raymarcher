@@ -20,6 +20,21 @@ float map_the_world(in vec3 p){
 	return sphere_0;
 }
 
+vec3 calculate_normal(in vec3 p){
+	//Ccalculating the normal of an arbitrary shape by finding
+	//how the sdf distance changes on a small distance change ds
+
+	const vec3 small_step = vec3(0.001, 0.0, 0.0);
+
+    float gradient_x = map_the_world(p + small_step.xyy) - map_the_world(p - small_step.xyy);
+    float gradient_y = map_the_world(p + small_step.yxy) - map_the_world(p - small_step.yxy);
+    float gradient_z = map_the_world(p + small_step.yyx) - map_the_world(p - small_step.yyx);
+
+	vec3 normal = vec3(gradient_x, gradient_y, gradient_z);
+
+	return normalize(normal);
+}
+
 //ro ray origin, rd ray direction
 vec3 raymarch(in vec3 ro, in vec3 rd){
 	float total_distance_traveled = 0.0;
@@ -37,7 +52,9 @@ vec3 raymarch(in vec3 ro, in vec3 rd){
 
 		if (distance_to_closest < MINIMUM_HIT_DISTANCE){
 			//Hit! Return red 
-			return vec3(1.0, 0.0, 0.0);
+			vec3 normal = calculate_normal(current_position);
+
+			return normal * 0.5 + 0.5;
 		}
 
 		if (total_distance_traveled > MAXIMUM_TRACE_DISTANCE){
