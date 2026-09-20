@@ -151,6 +151,7 @@ public:
 		fragProg->setShaderNames(resourceDirectory + "/simple_vert.glsl", resourceDirectory + "/solid_frag.glsl");
 		fragProg->init();
 		fragProg->addUniform("solidColor");
+		fragProg->addUniform("iTime");
 	}
 
 	void render(float frametime) {
@@ -164,9 +165,11 @@ public:
 
 		float aspect = width / (float)height;
 
-		
+		float currentTime = (float)glfwGetTime();
+
 		fragProg->bind();
 		glUniform3f(fragProg->getUniform("solidColor"), 0.0, 0.7, 0.0); 
+		glUniform1f(fragProg->getUniform("iTime"), currentTime);
 		glGenVertexArrays(1, &emptyVAO); glBindVertexArray(emptyVAO); 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		fragProg->unbind();
@@ -198,7 +201,6 @@ int main(int argc, char* argv[])
 	application->init(resourceDir);
 	
 	auto lastTime = chrono::high_resolution_clock::now();
-
 	// Loop until the user closes the window.
 	while (!glfwWindowShouldClose(windowManager->getHandle()))
 	{
