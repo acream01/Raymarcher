@@ -190,13 +190,13 @@ public:
 
 int main(int argc, char* argv[])
 {
-	// Where the resources are loaded from
-	std::string resourceDir = "../resources";
+	// Where the resources are loaded from. Absolute path based on argument 0 filepath name. Might break on some systems.
+	std::string resourceDir = argv[0];
 
-	if (argc >= 2)
-	{
-		resourceDir = argv[1];
-	}
+	resourceDir.erase(resourceDir.size() - 34, resourceDir.size());
+	resourceDir += "resources";
+	
+	//resourceDir = "../resources";
 
 	Application* application = new Application();
 
