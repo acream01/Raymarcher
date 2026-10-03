@@ -59,21 +59,28 @@ float sdBox( vec3 p, vec3 b )
   return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
 
+
+float repeated(vec3 p) {
+	p.x = p.x - round(p.x);
+	return 0.0; //sdf;
+}
+
 float map_the_world(in vec3 p){
 	
 	vec3 q = p - vec3(-1.0); //Position
 	float displacement = sin(5.0 * p.x) * sin(5.0 * p.y) * sin(5.0 * p.z) * 0.25;
-	//float sphere_0 = sdSphere(p, vec3(0.0, 0.0, sin(iTime) * 0.25), 2.0);
-	//float sphere_1 = sdSphere(p, vec3( sin(iTime) * 3.0, cos(iTime) * 3.0, 0.0), 2.0);
+	float sphere_0 = sdSphere(p, vec3(0.0, 0.0, sin(iTime) * 0.25), 2.0);
+	float sphere_1 = sdSphere(p, vec3( sin(iTime) * 3.0, cos(iTime) * 3.0, 0.0), 2.0);
 	//Opens up the possibility to have sdfs for multiple shapes
-	float box_1 = sdBox(q, vec3(1.0, 0.5, 1.0));
+	//float box_1 = sdBox(q, vec3(1.0, 0.5, 1.0));
 
-	q = p - vec3(1.0);
-	float box_2 = sdBox(q, vec3(1.0, 0.5, 1.0));
+	//q = p - vec3(1.0);
+	//float box_2 = sdBox(q, vec3(1.0, 0.5, 1.0));
 	displacement *= cos(iTime);
 
 	//return opSmoothUnion(sphere_0, sphere_1, 0.3) + displacement;
-	return opUnion(box_1, box_2) + displacement;
+	//return opUnion(box_1, box_2) + displacement;
+	return opSmoothUnion(sphere_0, sphere_1, 0.25) + displacement;
 }
 
 vec3 calculate_normal(in vec3 p){
@@ -153,6 +160,9 @@ void main()
 	//vec3 mat = vec3(texcoords.x, 0.0, 0.0);
 	//vec3 col = 0.5 + 0.5 * cos(iTime + uv.xyx + vec3(0, 2, 4));
 	vec3 col = raymarch(ro, rd, mat);
+	//Vignetting
+	vec2 q = texcoords/iResolution.xy;
+	col *= pow(16.0 * q.x * q.y * (1.0 - q.x) * (1.0 - q.y), 0.02 );
 
 	color = vec4(col , 1.0);
 	
