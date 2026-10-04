@@ -69,6 +69,8 @@ public:
 	bool move_left = false;
 	bool move_right = false;
 
+	int maxDepth = 3;
+
 
 
 	void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -76,6 +78,14 @@ public:
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		{
 			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+		if (key == GLFW_KEY_P && action == GLFW_PRESS)
+		{
+			maxDepth = glm::max(0, maxDepth + 1);
+		}
+		if (key == GLFW_KEY_O && action == GLFW_PRESS)
+		{
+			maxDepth = glm::max(0, maxDepth - 1);
 		}
 		//Moving Camera 
 		//Forward
@@ -161,6 +171,7 @@ public:
 		fragProg->addUniform("solidColor");
 		fragProg->addUniform("iTime");
 		fragProg->addUniform("iResolution");
+		fragProg->addUniform("maxDepth");
 	}
 
 	void render(float frametime) {
@@ -180,6 +191,7 @@ public:
 		glUniform3f(fragProg->getUniform("solidColor"), 0.0, 0.7, 0.0); 
 		glUniform1f(fragProg->getUniform("iTime"), currentTime);
 		glUniform2f(fragProg->getUniform("iResolution"), iResolution.x, iResolution.y);
+		glUniform1i(fragProg->getUniform("maxDepth"), maxDepth);
 		glGenVertexArrays(1, &emptyVAO); glBindVertexArray(emptyVAO); 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		fragProg->unbind();
