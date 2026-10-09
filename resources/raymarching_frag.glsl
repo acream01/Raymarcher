@@ -190,7 +190,11 @@ float map_the_world(in vec3 p){
 	float s = sin(2.2);
 	mat3 rx =  mat3(1, 0, 0,    0, c, s,   0, -s, c);
 	vec3 q = rx * p + vec3(0.0, 0.0, -1.0); //Rotate around shape center
-	return 0.5 * sdRommanesco(q);
+
+	//float displacement = sin(5.0 * p.x) * sin(5.0 * p.y) * sin(5.0 * p.z) * 0.01;
+	//displacement *= cos(iTime);
+
+	return 0.25 * sdRommanesco(q);
 	}
 
 vec3 calculate_normal(in vec3 p){
@@ -234,8 +238,12 @@ vec3 raymarch(in vec3 ro, in vec3 rd, in vec3 mat){
 
 			float diffuse_intensity = max(0.0, dot(normal, direction_to_light));
 
+			//ambient occlusion based on steps we take to reach a part of the sdf
+			float ambient_occlusion = 10.0 / i;
 
-			return mat * diffuse_intensity;
+			return mat * diffuse_intensity * ambient_occlusion;
+			//return mat * ambient_occlusion;
+			//return mat * diffuse_intensity;// * 1/ambient_occlusion;
 		}
 
 		if (total_distance_traveled > MAXIMUM_TRACE_DISTANCE){
@@ -262,14 +270,18 @@ void main()
 	//Keeps image aspect ratio through window resize
 	vec2 uv = (texcoords * 2.0 - 1.0) * vec2(iResolution.x / iResolution.y, 1.0);
 
-	vec3 camera_position = vec3(0.0, 0.0, -3.0);
+	vec3 camera_position = vec3(0.0, -0.7, -3.1);
 	vec3 ro = camera_position;
 	vec3 rd = normalize(vec3(uv, 1.0));
 
 	//vec3 mat = vec3(1.0, sin(iTime) * 0.5 + 0.5, cos(iTime) * 0.5 + 0.5);
-	vec3 mat = vec3(0.0, 0.8, 0.3);
+	vec3 mat = vec3(0.0, 0.9, 0.2);
 	//vec3 col = 0.5 + 0.5 * cos(iTime + uv.xyx + vec3(0, 2, 4));
 	vec3 col = raymarch(ro, rd, mat);
+
+	 // gamma
+     col =  pow( col,  vec3(0.4545) );
+
 	//Vignetting
 	vec2 q = texcoords;
 	col *= pow(16.0 * q.x * q.y * (1.0 - q.x) * (1.0 - q.y), 0.17 );
